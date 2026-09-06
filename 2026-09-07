@@ -1,0 +1,62 @@
+[TIL] React Custom Hook을 활용한 상태 로직 재사용
+1. 오늘 배운 내용 (Summary)
+Custom Hook의 개념: 반복되는 상태 관리 로직을 독립된 함수로 분리하여 컴포넌트 간 재사용성을 높이는 방법
+
+규칙 및 활용: use 접두사를 붙여 작성하며, 내부에서 useState, useEffect 등 기존 React Hook을 그대로 조합 가능
+
+2. 코드 및 문제 해결 (Code & Problem Solving)
+문제 상황
+
+여러 입력 폼(Login, Signup 등)에서 Input 상태와 onChange 이벤트 핸들러가 반복 작성되어 코드가 길어지고 중복 발생.
+
+작성한 코드 / 해결 방법
+Input 상태 관리를 캡슐화한 useInput Custom Hook 작성:
+
+TypeScript
+import { useState, ChangeEvent } from 'react';
+
+// Custom Hook 정의
+function useInput<T>(initialValue: T) {
+  const [value, setValue] = useState<T>(initialValue);
+
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value as unknown as T);
+  };
+
+  const reset = () => setValue(initialValue);
+
+  return { value, onChange, reset };
+}
+
+// 컴포넌트에서 활용
+function LoginForm() {
+  const email = useInput('');
+  const password = useInput('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log(email.value, password.value);
+    email.reset();
+    password.reset();
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="email" {...email} placeholder="이메일" />
+      <input type="password" {...password} placeholder="비밀번호" />
+      <button type="submit">로그인</button>
+    </form>
+  );
+}
+알게 된 점
+
+Spread 연산자({...email})를 활용해 value와 onChange 속성을 input 태그에 간결하게 주입 가능.
+
+UI 렌더링 로직과 상태 처리 로직을 깔끔하게 분리하여 컴포넌트의 가독성 대폭 향상.
+
+3. 오늘의 회고 (Retrospective)
+Keep: 반복되는 패턴을 방치하지 않고 Custom Hook으로 모듈화 시도한 점.
+
+Problem: 현재 작성한 useInput은 유효성 검사(Validation) 기능이 빠져 있음.
+
+Try: 내일은 Custom Hook 내부에서 정규식을 넘겨 받아 유효성 체크 결과를 반환하는 기능 추가해보기.
